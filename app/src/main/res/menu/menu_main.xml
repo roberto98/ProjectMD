@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.smartpark.MainActivity">
+    <item
+        android:id="@+id/action_opt_1"
+        android:orderInCategory="100"
+        android:title="Automatic Savings"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_opt_2"
+        android:orderInCategory="100"
+        android:title="Clear Position"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_opt_3"
+        android:orderInCategory="100"
+        android:title="Settings"
+        app:showAsAction="never" />
+</menu>
