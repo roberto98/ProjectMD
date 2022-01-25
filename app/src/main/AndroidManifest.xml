@@ -2,9 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.smartpark">
-
     <!-- https://stackoverflow.com/questions/35869610/when-should-i-use-access-coarse-location-permission -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"
+    <uses-permission
+        android:name="android.permission.ACCESS_FINE_LOCATION"
         tools:ignore="CoarseFineLocation" />
 
     <application
@@ -15,9 +15,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartPark">
         <activity
+            android:name=".PositionDetails"
+            android:exported="true" />
+        <activity
             android:name=".AutomaticSaving"
             android:exported="true"
-            android:parentActivityName=".MainActivity"/>
+            android:parentActivityName=".MainActivity" />
         <activity
             android:name=".MainActivity"
             android:exported="true">

@@ -65,11 +65,11 @@ public class MainActivity extends AppCompatActivity {
         Intent i=new Intent(this, AutomaticSaving.class);
         startActivity(i);
     }
-    /*
+
     public void startPosDetails(View v){
         Intent i=new Intent(this, PositionDetails.class);
         startActivity(i);
-    } */
+    }
 
 
 }
