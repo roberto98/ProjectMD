@@ -2,10 +2,13 @@ package com.example.smartpark;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         if (id == R.id.action_opt_1) {
+            startAutomaticSaving(); // Recall the function that start the activity
             Log.d("/tag", "ciao1");
             return true;
         }
@@ -56,5 +60,16 @@ public class MainActivity extends AppCompatActivity {
     // ------------------------------------------------------
     // Work in progress
     // ------------------------------------------------------
+
+    public void startAutomaticSaving(){
+        Intent i=new Intent(this, AutomaticSaving.class);
+        startActivity(i);
+    }
+    /*
+    public void startPosDetails(View v){
+        Intent i=new Intent(this, PositionDetails.class);
+        startActivity(i);
+    } */
+
 
 }
