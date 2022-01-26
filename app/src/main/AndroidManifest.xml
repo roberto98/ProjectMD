@@ -16,7 +16,8 @@
         android:theme="@style/Theme.SmartPark">
         <activity
             android:name=".PositionDetails"
-            android:exported="true" />
+            android:exported="true"
+            android:parentActivityName=".MainActivity"/>
         <activity
             android:name=".AutomaticSaving"
             android:exported="true"

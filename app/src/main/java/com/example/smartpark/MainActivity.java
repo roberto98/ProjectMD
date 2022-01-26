@@ -9,6 +9,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
+
+import java.util.Calendar;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -37,18 +41,18 @@ public class MainActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        if (id == R.id.action_opt_1) {
+        if (id == R.id.action_opt_1) { // automatic settings
             startAutomaticSaving(); // Recall the function that start the activity
             Log.d("/tag", "ciao1");
             return true;
         }
 
-        if (id == R.id.action_opt_2) {
+        if (id == R.id.action_opt_2) { // clear
             Log.d("/tag", "ciao2");
             return true;
         }
 
-        if (id == R.id.action_opt_3) {
+        if (id == R.id.action_opt_3) { // settings
             Log.d("/tag", "ciao3");
             return true;
         }
@@ -71,5 +75,26 @@ public class MainActivity extends AppCompatActivity {
         startActivity(i);
     }
 
+    public void ManualSaving(View v){
+        Date currentTime = Calendar.getInstance().getTime();
 
+        TextView park_time = findViewById(R.id.park_time);
+        park_time.setText("Park's time: "+currentTime);
+
+        TextView coord_txt = findViewById(R.id.coord_txt);
+        String coordinates = "123"; //TODO: implementare funzione gps
+        coord_txt.setText("Coordinates: "+coordinates);
+
+    }
+
+    // ------------------------------------------------------
+    // Get GPS coordinates function
+    // ------------------------------------------------------
+
+    //https://stackoverflow.com/questions/42595585/how-to-turn-on-gps-sensor-and-get-location-from-a-service-in-android-m
+    // https://stackoverflow.com/questions/1513485/how-do-i-get-the-current-gps-location-programmatically-in-android
+    private void getGPS(){
+
+    }
+    //TODO: Bisogna usare i service per lavorare in background
 }
