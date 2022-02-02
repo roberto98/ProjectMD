@@ -5,7 +5,8 @@
     <!-- https://stackoverflow.com/questions/35869610/when-should-i-use-access-coarse-location-permission -->
     <uses-permission
         android:name="android.permission.ACCESS_FINE_LOCATION"
-        tools:ignore="CoarseFineLocation" />
+        tools:ignore="CoarseFineLocation"
+        />
 
     <application
         android:allowBackup="true"
@@ -29,6 +30,10 @@
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.media.action.IMAGE_CAPTURE" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
     </application>
