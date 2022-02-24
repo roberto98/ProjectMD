@@ -12,10 +12,11 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class AutomaticSaving extends AppCompatActivity {
     private static final String LOG_TAG = "/TAG/"+AutomaticSaving.class.getSimpleName();
-    private SharedPreferences mPreferences;
+    private SharedPreferences autoPreferences;
     EditText bluetooth_text;
     Switch auto_switch, blt_switch;
 
@@ -24,20 +25,20 @@ public class AutomaticSaving extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_automatic_saving);
 
-        auto_switch = findViewById(R.id.automatic_switch);
-        blt_switch = findViewById(R.id.bluetooth_switch);
-        bluetooth_text = findViewById(R.id.bluetoothtext);
-
         // ------------------------------------------------------
         // GET delle informazioni
         // ------------------------------------------------------
 
-        String sharedPrefFile = "com.example.smartparkapp";
-        mPreferences = getSharedPreferences(sharedPrefFile, MODE_PRIVATE); //TODO: Invece che usare shared forse bisogna usare local storage? Se elimino app che succede? Perdo dati o no?
+        auto_switch = findViewById(R.id.automatic_switch);
+        blt_switch = findViewById(R.id.bluetooth_switch);
+        bluetooth_text = findViewById(R.id.bluetoothtext);
 
-        auto_switch.setChecked(mPreferences.getBoolean("auto_switch", false));
-        blt_switch.setChecked(mPreferences.getBoolean("blt_switch", false));
-        bluetooth_text.setText(mPreferences.getString("blt_name", ""));
+        String sharedPrefFile = "com.example.smartparkapp";
+        autoPreferences = getSharedPreferences(sharedPrefFile, MODE_PRIVATE);
+
+        auto_switch.setChecked(autoPreferences.getBoolean("auto_switch", false));
+        blt_switch.setChecked(autoPreferences.getBoolean("blt_switch", false));
+        bluetooth_text.setText(autoPreferences.getString("blt_name", ""));
 
     }
 
@@ -63,7 +64,6 @@ public class AutomaticSaving extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        saveFunction();
         Log.d(LOG_TAG, "OnPause");
     }
 
@@ -84,15 +84,31 @@ public class AutomaticSaving extends AppCompatActivity {
     // ------------------------------------------------------
 
     public void saveButton(View v){
-        saveFunction();                 //TODO: Perchè salva le informazioni anche senza che clicco il tasto salva??
+        saveFunction();
     }
 
     private void saveFunction(){
-        SharedPreferences.Editor preferencesEditor = mPreferences.edit();
+        SharedPreferences.Editor preferencesEditor = autoPreferences.edit();
         preferencesEditor.putBoolean("auto_switch", auto_switch.isChecked());
         preferencesEditor.putBoolean("blt_switch", blt_switch.isChecked());
         preferencesEditor.putString("blt_name", bluetooth_text.getText().toString());
         preferencesEditor.apply();
+
+        Toast.makeText(getApplicationContext(), "Settings Saved",  Toast.LENGTH_LONG).show();
     }
+
+    public void Clear(View v){
+        String sharedPrefFile = "com.example.smartparkapp";
+        SharedPreferences.Editor preferencesEditor = getSharedPreferences(sharedPrefFile, MODE_PRIVATE).edit();
+        //you did not set filename and file privacy like private mode or public mode..
+        preferencesEditor.remove("auto_switch");
+        preferencesEditor.remove("blt_switch");
+        preferencesEditor.remove("blt_name");
+        preferencesEditor.apply();
+
+        Toast.makeText(getApplicationContext(), "Settings Cleared\n\nRefresh the page too see the changes",  Toast.LENGTH_LONG).show();
+    }
+
+
 
 }

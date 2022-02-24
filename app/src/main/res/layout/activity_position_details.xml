@@ -7,15 +7,16 @@
     tools:context=".PositionDetails">
 
     <TextView
-        android:id="@+id/textView3"
-        android:layout_width="186dp"
-        android:layout_height="53dp"
-        android:layout_marginTop="52dp"
+        android:id="@+id/coord_pos"
+        android:layout_width="356dp"
+        android:layout_height="94dp"
+        android:layout_marginTop="16dp"
         android:drawableLeft="@android:drawable/ic_menu_mylocation"
+        android:gravity="center"
         android:text="Coordinates:"
-        android:textSize="24sp"
+        android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintHorizontal_bias="0.49"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -24,24 +25,24 @@
         style="?android:attr/borderlessButtonStyle"
         android:layout_width="190dp"
         android:layout_height="53dp"
-        android:layout_marginTop="80dp"
+        android:layout_marginTop="28dp"
         android:drawableLeft="@android:drawable/ic_menu_camera"
-        android:onClick="TakePicture"
+        android:onClick="TakePictureIntent"
         android:text="Click"
         android:textColor="#100F0F"
-        android:textSize="24sp"
+        android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView3" />
+        app:layout_constraintTop_toBottomOf="@+id/park_time_pos" />
 
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="272dp"
         android:layout_height="195dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="32dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.515"
+        app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/click" />
 
@@ -50,12 +51,26 @@
         android:layout_width="250dp"
         android:layout_height="39dp"
         android:layout_marginTop="60dp"
+        android:gravity="center"
         android:text="Comment..."
-        android:textSize="24sp"
+        android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView"
-        app:layout_constraintVertical_bias="0.36" />
+        app:layout_constraintVertical_bias="0.0" />
+
+    <TextView
+        android:id="@+id/park_time_pos"
+        android:layout_width="316dp"
+        android:layout_height="66dp"
+        android:layout_marginTop="24dp"
+        android:gravity="center"
+        android:text="Park's time:"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.494"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/coord_pos" />
 </androidx.constraintlayout.widget.ConstraintLayout>

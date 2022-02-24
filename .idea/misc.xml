@@ -3,12 +3,11 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="..\:/Users/edoar/AndroidStudioProjects/ProjectMD/app/src/main/res/layout/activity_main.xml" value="0.264" />
-        <entry key="..\:/Users/edoar/AndroidStudioProjects/ProjectMD/app/src/main/res/layout/activity_position_details.xml" value="0.2" />
         <entry key="..\:/Users/robyd/AndroidStudioProjects/SmartPark/app/src/main/res/layout/activity_automatic_saving.xml" value="0.2957427536231884" />
         <entry key="..\:/Users/robyd/AndroidStudioProjects/SmartPark/app/src/main/res/layout/activity_main.xml" value="0.2957427536231884" />
         <entry key="..\:/Users/robyd/AndroidStudioProjects/SmartPark/app/src/main/res/layout/activity_manual_saving.xml" value="0.20520833333333333" />
         <entry key="..\:/Users/robyd/AndroidStudioProjects/SmartPark/app/src/main/res/layout/activity_position_details.xml" value="0.2957427536231884" />
+        <entry key="..\:/Users/robyd/AndroidStudioProjects/SmartPark/app/src/main/res/layout/activity_settings.xml" value="0.20520833333333333" />
         <entry key="..\:/Users/robyd/AndroidStudioProjects/SmartPark/app/src/main/res/menu/menu_main.xml" value="0.20520833333333333" />
       </map>
     </option>

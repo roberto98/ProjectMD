@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.smartpark">
     <!-- https://medium.com/@msaudi/android-getting-user-location-updates-in-a-background-service-and-draw-location-updates-on-a-map-225589d28cf6 -->
-
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
@@ -17,9 +16,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartPark">
         <activity
-            android:name=".PositionDetails"
+            android:name=".Settings"
             android:exported="true"
             android:parentActivityName=".MainActivity"/>
+        <activity
+            android:name=".PositionDetails"
+            android:exported="true"
+            android:parentActivityName=".MainActivity" />
         <activity
             android:name=".AutomaticSaving"
             android:exported="true"
@@ -34,6 +37,7 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="android.media.action.IMAGE_CAPTURE" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
