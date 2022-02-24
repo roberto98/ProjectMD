@@ -14,6 +14,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,10 +24,18 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import permissions.dispatcher.NeedsPermission;
+import permissions.dispatcher.OnPermissionDenied;
 import permissions.dispatcher.RuntimePermissions;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+
 @RuntimePermissions
-public class MainActivity extends AppCompatActivity implements LocationListener {
+public class MainActivity extends AppCompatActivity implements LocationListener, OnMapReadyCallback{
     private static final String LOG_TAG = "//tag";
     private LocationManager locationManager;
     private double latitude = 0;
@@ -49,6 +58,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
         getParkDetails(); // Settings di coordinate gps e tempo già salvate
 
+        // Google map - Get a handle to the fragment and register the callback.
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
     }
 
 
@@ -63,8 +76,16 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     @NeedsPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     void getCoordinates() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            showDenied_getCoordinates();
+        } else {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
         }
+    }
+
+    // Annotate a method which is invoked if the user doesn't grant the permissions
+    @OnPermissionDenied(Manifest.permission.ACCESS_FINE_LOCATION)
+    void showDenied_getCoordinates() {
+        Toast.makeText(getApplicationContext(), "Permission denied", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -78,11 +99,16 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     // ------------------------------------------------------
     // GET delle coordinate GPS
     // ------------------------------------------------------
-
+    // https://stackoverflow.com/questions/1513485/how-do-i-get-the-current-gps-location-programmatically-in-android
+    private boolean ciao = false;
     @Override
     public void onLocationChanged(Location location) {
         latitude = location.getLatitude();
         longitude = location.getLongitude();
+        if(ciao==true){ // servirà per l'automatic savings in qualche modo
+            coord_txt = findViewById(R.id.coord_txt);
+            coord_txt.setText(String.format("Latitude: %s\nLongitude: %s", latitude, longitude));
+        }
         //locationManager.removeUpdates(this);
     }
 
@@ -185,6 +211,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         coord_txt = findViewById(R.id.coord_txt);
         coord_txt.setText(String.format("Latitude: %s\nLongitude: %s", latitude, longitude));
         savePark(time, latitude, longitude);
+
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
     }
 
 
@@ -232,5 +261,21 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private void getGPS(){
 
     }
+
+    // ------------------------------------------------------
+    // Display Google maps
+    //
+    // https://developers.google.com/maps/documentation/android-sdk/map#view_the_code
+    // https://www.youtube.com/watch?v=eiexkzCI8m8
+    // ------------------------------------------------------
+
+    @Override
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+        LatLng Car_pos = new LatLng(latitude, longitude);
+
+        googleMap.addMarker(new MarkerOptions().position(Car_pos).title("Car position"));
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(Car_pos, 18.5f));
+    }
+
     //TODO: Bisogna usare i service per lavorare in background
 }
