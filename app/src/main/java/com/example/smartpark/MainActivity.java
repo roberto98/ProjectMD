@@ -15,18 +15,22 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 
+import permissions.dispatcher.NeedsPermission;
+import permissions.dispatcher.RuntimePermissions;
+
+@RuntimePermissions
 public class MainActivity extends AppCompatActivity implements LocationListener {
     private static final String LOG_TAG = "//tag";
     private LocationManager locationManager;
-    private double latitude=0;
-    private double longitude=0;
+    private double latitude = 0;
+    private double longitude = 0;
 
     TextView coord_txt, park_time;
     String time;
@@ -36,30 +40,38 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // ------------------------------------------------------
-        // Gestione permessi GPS
-        // ------------------------------------------------------
-
         // https://javapapers.com/android/get-current-location-in-android/
         //  https://www.youtube.com/watch?v=-dO23oDmAaE
         // https://developer.android.com/training/location/permissions
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        //TODO: Se hai appena installato app, crasha ancor prima di chiedere i permessi.. se glieli dai poi va ma ogni volta che disinstalli e installi crasha la prima volta
-        if(ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(MainActivity.this, new String[]{
-                    Manifest.permission.ACCESS_FINE_LOCATION
-            }, 100);
+        MainActivityPermissionsDispatcher.getCoordinatesWithPermissionCheck(this);
+
+        getParkDetails(); // Settings di coordinate gps e tempo già salvate
+
+    }
+
+
+    // ------------------------------------------------------
+    // GESTIONE PERMESSI GPS
+    //
+    // https://github.com/permissions-dispatcher/PermissionsDispatcher -> runtime location permission with PermissionsDispatcher
+    // If u don't have MainActivityPermissionDispatcher Class -> Just do Build->Clean Project and then Build->Rebuild Project
+    // Se non lo usavo c'era il problema che l'app crashava nella oncreate senza neanche darti il tempo di cedere i permessi
+    // ------------------------------------------------------
+
+    @NeedsPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+    void getCoordinates() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
         }
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0 , this);
+    }
 
-        // ------------------------------------------------------
-        // Settings di coordinate gps e tempo già salvate
-        // ------------------------------------------------------
-
-        getParkDetails();
-
-
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        // NOTE: delegate the permission handling to generated method
+        MainActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
     }
 
 
@@ -121,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             coord_txt = findViewById(R.id.coord_txt);
 
             park_time.setText("Park's time:\n");
-            coord_txt.setText("Latitude: " + "\nLongitude: ");
+            coord_txt.setText("Latitude: \nLongitude: ");
 
             Clear_SharedPreferences();
             return true;
@@ -168,10 +180,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         time = dateFormat.format(new Date());
 
         park_time = findViewById(R.id.park_time);
-        park_time.setText("Park's time:\n" + time);
+        park_time.setText(String.format("Park's time:\n%s", time));
 
         coord_txt = findViewById(R.id.coord_txt);
-        coord_txt.setText("Latitude: "  + latitude + "\nLongitude: " + longitude);
+        coord_txt.setText(String.format("Latitude: %s\nLongitude: %s", latitude, longitude));
         savePark(time, latitude, longitude);
     }
 
@@ -196,8 +208,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         String sharedPrefFile = "com.example.smartparkapp";
         mPreferences = getSharedPreferences(sharedPrefFile, MODE_PRIVATE); // Anche se disinstallo l'app e perdo i dati non mi importa, quindi uso SharedPreference
 
-        park_time.setText("Park's time:\n" + mPreferences.getString("park_time", ""));
-        coord_txt.setText("Latitude: "  + mPreferences.getString("latitude", "") +"\nLongitude: " + mPreferences.getString("longitude", ""));
+        park_time.setText(String.format("Park's time:\n%s", mPreferences.getString("park_time", "")));
+        coord_txt.setText(String.format("Latitude: %s\nLongitude: %s", mPreferences.getString("latitude", ""), mPreferences.getString("longitude", "")));
     }
 
     private void Clear_SharedPreferences(){

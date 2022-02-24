@@ -11,12 +11,10 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -99,7 +97,10 @@ public class PositionDetails extends AppCompatActivity {
                 public void onActivityResult(ActivityResult result) {
                     if (result.getResultCode() == Activity.RESULT_OK) {
                         Intent data = result.getData();
-                        Bitmap imageBitmap = (Bitmap) data.getExtras().get("data");
+                        Bitmap imageBitmap = null;
+                        if (data != null) {
+                            imageBitmap = (Bitmap) data.getExtras().get("data");
+                        }
 
                         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                         time = dateFormat.format(new Date());
@@ -142,7 +143,9 @@ public class PositionDetails extends AppCompatActivity {
             e.printStackTrace();
         } finally {
             try {
-                fos.close();
+                if (fos != null) {
+                    fos.close();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -170,17 +173,16 @@ public class PositionDetails extends AppCompatActivity {
     // ------------------------------------------------------
     // Gestione di Shared Preference
     // ------------------------------------------------------
-    private SharedPreferences mPreferences;
 
     private void getParkDetails(){
         park_time_pos = findViewById(R.id.park_time_pos);
         coord_pos = findViewById(R.id.coord_pos);
 
         String sharedPrefFile = "com.example.smartparkapp";
-        mPreferences = getSharedPreferences(sharedPrefFile, MODE_PRIVATE);
+        SharedPreferences mPreferences = getSharedPreferences(sharedPrefFile, MODE_PRIVATE);
 
-        park_time_pos.setText("Park's time:\n" + mPreferences.getString("park_time", ""));
-        coord_pos.setText("Latitude: "  + mPreferences.getString("latitude", "") +"\nLongitude: " + mPreferences.getString("longitude", ""));
+        park_time_pos.setText(String.format("Park's time:\n%s", mPreferences.getString("park_time", "")));
+        coord_pos.setText(String.format("Latitude: %s\nLongitude: %s", mPreferences.getString("latitude", ""), mPreferences.getString("longitude", "")));
     }
 
 
