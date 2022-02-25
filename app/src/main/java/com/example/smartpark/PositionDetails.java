@@ -19,6 +19,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,9 +34,11 @@ import java.util.Date;
 
 public class PositionDetails extends AppCompatActivity {
     private static final String LOG_TAG = "/TAG/"+PositionDetails.class.getSimpleName();
+    private SharedPreferences mPreferences;
     ImageView imageView;
     String time;
     TextView park_time_pos, coord_pos;
+    EditText textbox;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,7 +112,7 @@ public class PositionDetails extends AppCompatActivity {
                         imageView = (ImageView) findViewById(R.id.imageView);
                         imageView.setImageBitmap(imageBitmap);
 
-                        Toast.makeText(getBaseContext(), "Photo saved", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getBaseContext(), "Photo saved\nYou can delete it holding it", Toast.LENGTH_LONG).show();
                         //imageView.setRotation(90);
                     }
 
@@ -177,12 +180,14 @@ public class PositionDetails extends AppCompatActivity {
     private void getParkDetails(){
         park_time_pos = findViewById(R.id.park_time_pos);
         coord_pos = findViewById(R.id.coord_pos);
+        textbox = findViewById(R.id.textbox);
 
         String sharedPrefFile = "com.example.smartparkapp";
-        SharedPreferences mPreferences = getSharedPreferences(sharedPrefFile, MODE_PRIVATE);
+        mPreferences = getSharedPreferences(sharedPrefFile, MODE_PRIVATE);
 
         park_time_pos.setText(String.format("Park's time:\n%s", mPreferences.getString("park_time", "")));
         coord_pos.setText(String.format("Latitude: %s\nLongitude: %s", mPreferences.getString("latitude", ""), mPreferences.getString("longitude", "")));
+        textbox.setText(String.format(mPreferences.getString("text_box", "")));
     }
 
 
@@ -205,8 +210,12 @@ public class PositionDetails extends AppCompatActivity {
     }
 
     @Override
-    protected void onPause() {
+    protected void onPause() { // Salva in automatico uscendo dalla pagina
         super.onPause();
+        textbox = findViewById(R.id.textbox);
+        SharedPreferences.Editor preferencesEditor = mPreferences.edit();
+        preferencesEditor.putString("text_box", textbox.getText().toString());
+        preferencesEditor.apply();
         Log.d(LOG_TAG, "OnPause");
     }
 

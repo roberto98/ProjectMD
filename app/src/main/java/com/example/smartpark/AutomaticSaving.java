@@ -12,7 +12,7 @@ import android.widget.Toast;
 
 public class AutomaticSaving extends AppCompatActivity {
     private static final String LOG_TAG = "/TAG/"+AutomaticSaving.class.getSimpleName();
-    private SharedPreferences autoPreferences;
+    private SharedPreferences mPreferences;
     EditText bluetooth_text;
     Switch auto_switch, blt_switch;
 
@@ -30,11 +30,11 @@ public class AutomaticSaving extends AppCompatActivity {
         bluetooth_text = findViewById(R.id.bluetoothtext);
 
         String sharedPrefFile = "com.example.smartparkapp";
-        autoPreferences = getSharedPreferences(sharedPrefFile, MODE_PRIVATE);
+        mPreferences = getSharedPreferences(sharedPrefFile, MODE_PRIVATE);
 
-        auto_switch.setChecked(autoPreferences.getBoolean("auto_switch", false));
-        blt_switch.setChecked(autoPreferences.getBoolean("blt_switch", false));
-        bluetooth_text.setText(autoPreferences.getString("blt_name", ""));
+        auto_switch.setChecked(mPreferences.getBoolean("auto_switch", false));
+        blt_switch.setChecked(mPreferences.getBoolean("blt_switch", false));
+        bluetooth_text.setText(mPreferences.getString("blt_name", ""));
 
     }
 
@@ -84,7 +84,7 @@ public class AutomaticSaving extends AppCompatActivity {
     }
 
     private void saveFunction(){
-        SharedPreferences.Editor preferencesEditor = autoPreferences.edit();
+        SharedPreferences.Editor preferencesEditor = mPreferences.edit();
         preferencesEditor.putBoolean("auto_switch", auto_switch.isChecked());
         preferencesEditor.putBoolean("blt_switch", blt_switch.isChecked());
         preferencesEditor.putString("blt_name", bluetooth_text.getText().toString());

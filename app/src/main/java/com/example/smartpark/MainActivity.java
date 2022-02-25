@@ -13,6 +13,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,12 +44,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     private double longitude = 0;
 
     TextView coord_txt, park_time;
-    String time;
+    String time, blt_name, saving_type;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Log.d(LOG_TAG, "OnCreate");
+        Log.d(LOG_TAG, "1- "+latitude);
 
         // https://javapapers.com/android/get-current-location-in-android/
         //  https://www.youtube.com/watch?v=-dO23oDmAaE
@@ -56,11 +60,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         MainActivityPermissionsDispatcher.getCoordinatesWithPermissionCheck(this);
 
-        getParkDetails(); // Settings di coordinate gps e tempo già salvate
+        saving_type = CheckAutomaticSavings(); // Verifico quale tipo di salvataggio automatico è attivo
 
+        getParkDetails(); // Settings di coordinate gps e tempo già salvate
+        Log.d(LOG_TAG, "2- "+latitude);
         // Google map - Get a handle to the fragment and register the callback.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        Log.d(LOG_TAG, "3- "+latitude);
 
     }
 
@@ -100,15 +107,30 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     // GET delle coordinate GPS
     // ------------------------------------------------------
     // https://stackoverflow.com/questions/1513485/how-do-i-get-the-current-gps-location-programmatically-in-android
-    private boolean ciao = false;
+
     @Override
     public void onLocationChanged(Location location) {
         latitude = location.getLatitude();
         longitude = location.getLongitude();
-        if(ciao==true){ // servirà per l'automatic savings in qualche modo
-            coord_txt = findViewById(R.id.coord_txt);
-            coord_txt.setText(String.format("Latitude: %s\nLongitude: %s", latitude, longitude));
+
+        switch (saving_type){
+            case "Bluetooth":
+                // prende sempre la posizione, appena vede una disconnessione dal nome salvato salva posizione
+                break;
+            case "No_Bluetooth":
+                // deve prendere sempre posizione, e controllare quanti passi o quanto tempo passa prima di salvare la posizione
+                break;
+            case "No_Auto":
+                // la posizione non si deve riaggiornare
+                break;
+            default:
+                Toast.makeText(getApplicationContext(), "Something seems to not working, contact the developer.\nCode #123", Toast.LENGTH_LONG).show();
+
         }
+
+           // coord_txt = findViewById(R.id.coord_txt);
+           // coord_txt.setText(String.format("Latitude: %s\nLongitude: %s", latitude, longitude));
+
         //locationManager.removeUpdates(this);
     }
 
@@ -153,15 +175,20 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         }
 
         if (id == R.id.action_opt_2) { // clear
-            Log.d(LOG_TAG, "Clear everything");
 
             park_time = findViewById(R.id.park_time);
             coord_txt = findViewById(R.id.coord_txt);
-
             park_time.setText("Park's time:\n");
             coord_txt.setText("Latitude: \nLongitude: ");
 
             Clear_SharedPreferences();
+
+            latitude = 0;
+            longitude = 0;
+            SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+            mapFragment.getMapAsync(this);
+
+            Log.d(LOG_TAG, "Clear everything");
             return true;
         }
 
@@ -239,28 +266,50 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
         park_time.setText(String.format("Park's time:\n%s", mPreferences.getString("park_time", "")));
         coord_txt.setText(String.format("Latitude: %s\nLongitude: %s", mPreferences.getString("latitude", ""), mPreferences.getString("longitude", "")));
+
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+    }
+
+    private String CheckAutomaticSavings(){
+
+        String sharedPrefFile = "com.example.smartparkapp";
+        mPreferences = getSharedPreferences(sharedPrefFile, MODE_PRIVATE);
+
+        boolean auto_switch = mPreferences.getBoolean("auto_switch", false);
+        boolean blt_switch = mPreferences.getBoolean("blt_switch", false);
+        String bluetooth_text = mPreferences.getString("blt_name", "");
+
+        if(auto_switch){
+            if(blt_switch){
+                blt_name = bluetooth_text;
+                saving_type =  "Bluetooth";
+            } else {
+                saving_type =  "No_Bluetooth";
+            }
+        } else {
+            saving_type =  "No_Auto";
+        }
+        return saving_type;
     }
 
     private void Clear_SharedPreferences(){
         String sharedPrefFile = "com.example.smartparkapp";
-        SharedPreferences.Editor preferencesEditor = getSharedPreferences(sharedPrefFile, MODE_PRIVATE).edit();
+        SharedPreferences.Editor mPreferences = getSharedPreferences(sharedPrefFile, MODE_PRIVATE).edit();
         //preferencesEditor.clear(); // cancella ogni cosa, pure automatic settings
-        preferencesEditor.remove("park_time");
-        preferencesEditor.remove("latitude");
-        preferencesEditor.remove("longitude");
-        preferencesEditor.apply();
+        mPreferences.remove("park_time");
+        mPreferences.remove("latitude");
+        mPreferences.remove("longitude");
+        mPreferences.apply();
     }
 
     // ------------------------------------------------------
     // Funzioni ausiliare
     // ------------------------------------------------------
 
-    //https://stackoverflow.com/questions/42595585/how-to-turn-on-gps-sensor-and-get-location-from-a-service-in-android-m
-    // https://stackoverflow.com/questions/1513485/how-do-i-get-the-current-gps-location-programmatically-in-android
 
-    private void getGPS(){
 
-    }
+
 
     // ------------------------------------------------------
     // Display Google maps
@@ -277,5 +326,34 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(Car_pos, 18.5f));
     }
 
+
+    // ------------------------------------------------------
+    // Activity States
+    // ------------------------------------------------------
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(LOG_TAG, "onResume"+latitude+"--"+longitude);
+        getParkDetails();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(LOG_TAG, "OnPause");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(LOG_TAG, "onStop");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(LOG_TAG, "onDestroy");
+    }
     //TODO: Bisogna usare i service per lavorare in background
 }
