@@ -40,6 +40,7 @@ public class PositionDetails extends AppCompatActivity {
     TextView park_time_pos, coord_pos;
     EditText textbox;
 
+    String coordinates, park_time;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,7 +49,31 @@ public class PositionDetails extends AppCompatActivity {
 
         imageView = (ImageView) findViewById(R.id.imageView);
         loadImageFromStorage();
-        getParkDetails();
+
+        park_time_pos = findViewById(R.id.park_time_pos);
+        coord_pos = findViewById(R.id.coord_pos);
+        textbox = findViewById(R.id.textbox);
+
+
+        // ------------------------------------------------------
+        // Settings coordinates and park time from intent + textbox from Shared Pref
+        // ------------------------------------------------------
+        if (savedInstanceState == null) {
+            Bundle extras = getIntent().getExtras();
+            if(extras != null) {
+                park_time = extras.getString("park_time");
+                coordinates = extras.getString("coordinates");
+            }
+        }
+
+        String sharedPrefFile = "com.example.smartparkapp";
+        mPreferences = getSharedPreferences(sharedPrefFile, MODE_PRIVATE);
+        textbox.setText(String.format(mPreferences.getString("text_box", "")));
+
+        park_time_pos.setText(park_time);
+        coord_pos.setText(coordinates);
+
+
 
         // ------------------------------------------------------
         // Click della foto
@@ -75,10 +100,8 @@ public class PositionDetails extends AppCompatActivity {
         });
     }
 
-    private void DeleteImage(String photo_name)
-    {
-        try
-        {
+    private void DeleteImage(String photo_name) {
+        try {
             Context context = getApplicationContext();
             File path = new File(context.getFilesDir().getAbsolutePath());
             File fileToBeDeleted = new File(path, photo_name); // image to delete
@@ -117,6 +140,7 @@ public class PositionDetails extends AppCompatActivity {
                     }
 
                 }
+
             });
 
     public void TakePictureIntent(View view) {
@@ -171,23 +195,6 @@ public class PositionDetails extends AppCompatActivity {
             e.printStackTrace();
         }
 
-    }
-
-    // ------------------------------------------------------
-    // Gestione di Shared Preference
-    // ------------------------------------------------------
-
-    private void getParkDetails(){
-        park_time_pos = findViewById(R.id.park_time_pos);
-        coord_pos = findViewById(R.id.coord_pos);
-        textbox = findViewById(R.id.textbox);
-
-        String sharedPrefFile = "com.example.smartparkapp";
-        mPreferences = getSharedPreferences(sharedPrefFile, MODE_PRIVATE);
-
-        park_time_pos.setText(String.format("Park's time:\n%s", mPreferences.getString("park_time", "")));
-        coord_pos.setText(String.format("Latitude: %s\nLongitude: %s", mPreferences.getString("latitude", ""), mPreferences.getString("longitude", "")));
-        textbox.setText(String.format(mPreferences.getString("text_box", "")));
     }
 
 

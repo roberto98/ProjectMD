@@ -2,19 +2,26 @@ package com.example.smartpark;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.gms.maps.model.LatLng;
 
 public class AutomaticSaving extends AppCompatActivity {
     private static final String LOG_TAG = "/TAG/"+AutomaticSaving.class.getSimpleName();
     private SharedPreferences mPreferences;
     EditText bluetooth_text;
     Switch auto_switch, blt_switch;
+
+    String blt_name;
+    String saving_type;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,7 +44,6 @@ public class AutomaticSaving extends AppCompatActivity {
         bluetooth_text.setText(mPreferences.getString("blt_name", ""));
 
     }
-
 
     @Override
     protected void onStart() {
@@ -81,6 +87,7 @@ public class AutomaticSaving extends AppCompatActivity {
 
     public void saveButton(View v){
         saveFunction();
+        finish(); // Finish the current activity
     }
 
     private void saveFunction(){
@@ -88,8 +95,17 @@ public class AutomaticSaving extends AppCompatActivity {
         preferencesEditor.putBoolean("auto_switch", auto_switch.isChecked());
         preferencesEditor.putBoolean("blt_switch", blt_switch.isChecked());
         preferencesEditor.putString("blt_name", bluetooth_text.getText().toString());
-        preferencesEditor.apply();
 
+        if(auto_switch.isChecked()){ // Verifico quale tipo di salvataggio automatico è attivo e lo salvo
+            if(blt_switch.isChecked()){
+                preferencesEditor.putString("saving_type", "Bluetooth");
+            } else {
+                preferencesEditor.putString("saving_type", "No_Bluetooth");
+            }
+        } else {
+            preferencesEditor.putString("saving_type", "No_Auto");
+        }
+        preferencesEditor.apply();
         Toast.makeText(getApplicationContext(), "Settings Saved",  Toast.LENGTH_LONG).show();
     }
 
@@ -100,11 +116,11 @@ public class AutomaticSaving extends AppCompatActivity {
         preferencesEditor.remove("auto_switch");
         preferencesEditor.remove("blt_switch");
         preferencesEditor.remove("blt_name");
+        preferencesEditor.putString("saving_type", "No_Auto"); // the default value is No_Auto
+
         preferencesEditor.apply();
-
-        Toast.makeText(getApplicationContext(), "Settings Cleared\n\nRefresh the page too see the changes",  Toast.LENGTH_LONG).show();
+        Toast.makeText(getApplicationContext(), "Settings Cleared",  Toast.LENGTH_LONG).show();
+        finish(); // Finish the current activity
     }
-
-
 
 }
