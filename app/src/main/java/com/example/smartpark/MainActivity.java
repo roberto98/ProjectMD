@@ -1,10 +1,12 @@
 package com.example.smartpark;
 
 import android.Manifest;
-import android.app.Activity;
-import android.content.ActivityNotFoundException;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -16,15 +18,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.EditText;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -48,28 +44,25 @@ import com.google.android.gms.maps.model.MarkerOptions;
 public class MainActivity extends AppCompatActivity implements LocationListener, OnMapReadyCallback{
     private static final String LOG_TAG = "/TAG/"+MainActivity.class.getSimpleName();
     private LocationManager locationManager;
-    private double latitude = 0;
-    private double longitude = 0;
+    double latitude;
+    double longitude;
 
     TextView coord_txt, park_time;
-    String time, blt_name, saving_type;
+    String time, input_blt_name, saving_type;
     LatLng Car_pos;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // https://javapapers.com/android/get-current-location-in-android/
-        //  https://www.youtube.com/watch?v=-dO23oDmAaE
-        // https://developer.android.com/training/location/permissions
-
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         MainActivityPermissionsDispatcher.getCoordinatesWithPermissionCheck(this);
 
         getParkDetails(); // Settings di coordinate gps e tempo e mappa già salvate
 
-        Log.d(LOG_TAG, "OnCreate"+saving_type+"-");
+        Log.d(LOG_TAG, "OnCreate");
     }
 
 
@@ -86,7 +79,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             showDenied_getCoordinates();
         } else {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 500, 0, this);
+            Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            Log.d(LOG_TAG, "## prova: "+location+"  ----------- ");
         }
     }
 
@@ -107,24 +102,22 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     // ------------------------------------------------------
     // GET delle coordinate GPS
     // ------------------------------------------------------
-    // https://stackoverflow.com/questions/1513485/how-do-i-get-the-current-gps-location-programmatically-in-android
 
     @Override
     public void onLocationChanged(Location location) {
         latitude = location.getLatitude();
         longitude = location.getLongitude();
-
-        //locationManager.removeUpdates(this);
+        Log.d(LOG_TAG, "## lat long "+latitude+"---"+longitude);
     }
 
     @Override
     public void onProviderDisabled(String provider) {
-        Log.d(LOG_TAG, "coordinates provider disable");
+        Log.d(LOG_TAG, "Coordinates provider disable");
     }
 
     @Override
     public void onProviderEnabled(String provider) {
-        Log.d(LOG_TAG, "coordinates provider enabled");
+        Log.d(LOG_TAG, "Coordinates provider enabled");
     }
 
     @Override
@@ -143,22 +136,17 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         return true;
     }
 
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
+        // Handle action bar item clicks here.
         int id = item.getItemId();
 
         if (id == R.id.action_opt_1) { // automatic settings
             startAutomaticSaving(); // Recall the function that start the activity
-            Log.d(LOG_TAG, "Automatic Settings");
             return true;
         }
 
         if (id == R.id.action_opt_2) { // clear
-
             park_time = findViewById(R.id.park_time);
             coord_txt = findViewById(R.id.coord_txt);
             park_time.setText("Park's time:\n");
@@ -168,8 +156,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
             DeleteImage("lastPhoto.jpg");
 
             Car_pos = new LatLng(0, 0);
-            SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-            mapFragment.getMapAsync(this);
+            initMap();
 
             Log.d(LOG_TAG, "Clear everything");
             return true;
@@ -177,10 +164,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
         if (id == R.id.action_opt_3) { // settings
             startSettings();
-            Log.d(LOG_TAG, "Settings page");
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -193,7 +178,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         Intent i = new Intent(this, AutomaticSaving.class);
         startActivity(i);
     }
-
 
     public void startSettings() {
         Intent i = new Intent(this, Settings.class);
@@ -211,11 +195,15 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     }
 
     // ------------------------------------------------------
-    // Salvataggio manuale
+    // Salvataggio manuale + Position Saving
     // ------------------------------------------------------
-
     public void ManualSaving(View v) {
-        Log.d(LOG_TAG, "Manual saving clicked");
+        PositionSaving();
+        Log.d(LOG_TAG, "## Manual 7");
+    }
+
+    private void PositionSaving() {
+        Log.d(LOG_TAG, "Executing position saving");
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         time = dateFormat.format(new Date());
@@ -227,9 +215,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         coord_txt.setText(String.format("Latitude: %s\nLongitude: %s", latitude, longitude));
         savePark(time, latitude, longitude);
 
+        Log.d(LOG_TAG, "## 5    "+latitude);
         Car_pos = new LatLng(latitude, longitude);
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        Log.d(LOG_TAG, "## 6");
+        initMap();
+        Log.d(LOG_TAG, "## 7");
     }
 
 
@@ -268,8 +258,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         coord_txt.setText(String.format("Latitude: %s\nLongitude: %s", latitude, longitude));
 
         Car_pos = new LatLng(latitude, longitude);
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        Log.d(LOG_TAG, "## 8");
+        initMap();
     }
 
 
@@ -288,10 +278,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     // Funzioni ausiliare
     // ------------------------------------------------------
 
-    private void DeleteImage(String photo_name)
-    {
-        try
-        {
+    private void DeleteImage(String photo_name) {
+        try {
             Context context = getApplicationContext();
             File path = new File(context.getFilesDir().getAbsolutePath());
             File fileToBeDeleted = new File(path, photo_name); // image to delete
@@ -303,25 +291,73 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     }
 
 
-
     // ------------------------------------------------------
     // Display Google maps
-    //
-    // https://developers.google.com/maps/documentation/android-sdk/map#view_the_code
-    // https://www.youtube.com/watch?v=eiexkzCI8m8
     // ------------------------------------------------------
+    private void initMap(){
+        Log.d(LOG_TAG,"initMap: initializing map");
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(MainActivity.this);
+    }
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
+        googleMap.clear(); // Per resettare i marker piazzati precedentemente
         googleMap.addMarker(new MarkerOptions().position(Car_pos).title("Car position"));
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(Car_pos, 18.5f));
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(Car_pos, 16f));
     }
 
+    // ------------------------------------------------------
+    // BLUETOOTH
+    // ------------------------------------------------------
+
+    //The BroadcastReceiver that listens for bluetooth broadcasts
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        String BTdeviceName, BTdeviceHardwareAddress;
+
+        @Override
+        public void onReceive(Context context, @NonNull Intent intent) {
+            String action = intent.getAction();
+            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+
+            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                //Device found
+            }
+            else if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
+                //Device is now connected
+                BTdeviceName = device.getName();
+                BTdeviceHardwareAddress = device.getAddress(); // MAC address
+                Log.d(LOG_TAG, "BT connected: " + BTdeviceName + " - MAC: " + BTdeviceHardwareAddress);
+            }
+            else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+                //Done searching
+            }
+            else if (BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED.equals(action)) {
+                //Device is about to disconnect
+            }
+            else if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
+                //Device has disconnected
+                BTdeviceName = device.getName();
+                BTdeviceHardwareAddress = device.getAddress(); // MAC address TODO: in futuro si potrebbe fare che ti faccio eseguire il primo collegamento e mi tengo salvato poi il mac
+                input_blt_name = mPreferences.getString("blt_name", "");
+                Log.d(LOG_TAG, "BTdeviceName: " + BTdeviceName + " - input_blt_name: " + input_blt_name);
+
+                if(BTdeviceName.equals(input_blt_name)) {    // Se il BT inserito dall'utente coincide allora è la macchina e posso salvare posizione
+                    Toast.makeText(getApplicationContext(), "Bluetooth disconnected\nSaving Position", Toast.LENGTH_SHORT).show();
+                    PositionSaving();
+
+                    Log.d(LOG_TAG, "2");
+                    unregisterReceiver(mReceiver);
+                    Log.d(LOG_TAG, "2");
+                }
+                Log.d(LOG_TAG, "BT disconnected: " + BTdeviceName + " - MAC: " + BTdeviceHardwareAddress);
+            }
+        }
+    };
 
     // ------------------------------------------------------
     // Activity States
-    // ------------------------------------------------------
-
+    // -----------------------------------------------------
 
     @Override
     protected void onStart() {
@@ -339,8 +375,21 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         Log.d(LOG_TAG, "type: "+saving_type);
         switch (saving_type){
             case "Bluetooth":
-                // prende sempre la posizione, appena vede una disconnessione dal nome salvato salva posizione
-                //Log.d(LOG_TAG, "Bluetooth Mode");
+                BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                if(bluetoothAdapter == null){
+                    Toast.makeText(getApplicationContext(), "Bluetooth not supported", Toast.LENGTH_LONG).show();
+                } else {
+                    IntentFilter filter = new IntentFilter();
+                    filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
+                    filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
+                    filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+                    this.registerReceiver(mReceiver, filter);
+
+                    if(!bluetoothAdapter.isEnabled()){
+                        Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                        startActivityForResult(enableBtIntent, 0); // Abilita il bluetooth
+                    }
+                }
                 break;
             case "No_Bluetooth":
                 // deve prendere sempre posizione, e controllare quanti passi o quanto tempo passa prima di salvare la posizione
@@ -348,8 +397,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                 break;
             case "No_Auto":
                 // la posizione non si deve riaggiornare
-                //Log.d(LOG_TAG, "NO automatic - Manual Mode");
-                //Car_pos = new LatLng(latitude, longitude);
                 break;
             default:
                 Toast.makeText(getApplicationContext(), "Something went wrong, contact the developer.\nCode #123", Toast.LENGTH_LONG).show();
