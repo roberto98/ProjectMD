@@ -3,6 +3,7 @@ package com.example.smartpark;
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -40,8 +41,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-@RuntimePermissions
-public class MainActivity extends AppCompatActivity implements LocationListener, OnMapReadyCallback{
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback{
     private static final String LOG_TAG = "/TAG/"+MainActivity.class.getSimpleName();
     private LocationManager locationManager;
     double latitude;
@@ -51,78 +51,20 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     String time, input_blt_name, saving_type;
     LatLng Car_pos;
 
+    // GPSTracker class
+    GPSTracker gps;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        MainActivityPermissionsDispatcher.getCoordinatesWithPermissionCheck(this);
+
+        getCoordinates();
 
         getParkDetails(); // Settings di coordinate gps e tempo e mappa già salvate
 
         Log.d(LOG_TAG, "OnCreate");
-    }
-
-
-    // ------------------------------------------------------
-    // GESTIONE PERMESSI GPS
-    //
-    // https://github.com/permissions-dispatcher/PermissionsDispatcher -> runtime location permission with PermissionsDispatcher
-    // If u don't have MainActivityPermissionDispatcher Class -> Just do Build->Clean Project and then Build->Rebuild Project
-    // Se non lo usavo c'era il problema che l'app crashava nella oncreate senza neanche darti il tempo di cedere i permessi
-    // ------------------------------------------------------
-
-    @NeedsPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-    void getCoordinates() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            showDenied_getCoordinates();
-        } else {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 500, 0, this);
-            Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            Log.d(LOG_TAG, "## prova: "+location+"  ----------- ");
-        }
-    }
-
-    // Annotate a method which is invoked if the user doesn't grant the permissions
-    @OnPermissionDenied(Manifest.permission.ACCESS_FINE_LOCATION)
-    void showDenied_getCoordinates() {
-        Toast.makeText(getApplicationContext(), "Permission denied", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        // NOTE: delegate the permission handling to generated method
-        MainActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
-    }
-
-
-    // ------------------------------------------------------
-    // GET delle coordinate GPS
-    // ------------------------------------------------------
-
-    @Override
-    public void onLocationChanged(Location location) {
-        latitude = location.getLatitude();
-        longitude = location.getLongitude();
-        Log.d(LOG_TAG, "## lat long "+latitude+"---"+longitude);
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-        Log.d(LOG_TAG, "Coordinates provider disable");
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-        Log.d(LOG_TAG, "Coordinates provider enabled");
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-        Log.d(LOG_TAG, " Coordinates status changed");
     }
 
     // ------------------------------------------------------
@@ -180,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     }
 
     public void startSettings() {
-        Intent i = new Intent(this, Settings.class);
+        Intent i = new Intent(this, AppSettings.class);
         startActivity(i);
     }
 
@@ -198,8 +140,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     // Salvataggio manuale + Position Saving
     // ------------------------------------------------------
     public void ManualSaving(View v) {
+        getCoordinates();
         PositionSaving();
-        Log.d(LOG_TAG, "## Manual 7");
+
+        Car_pos = new LatLng(latitude, longitude);
+        initMap();
     }
 
     private void PositionSaving() {
@@ -214,12 +159,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         coord_txt = findViewById(R.id.coord_txt);
         coord_txt.setText(String.format("Latitude: %s\nLongitude: %s", latitude, longitude));
         savePark(time, latitude, longitude);
-
-        Log.d(LOG_TAG, "## 5    "+latitude);
-        Car_pos = new LatLng(latitude, longitude);
-        Log.d(LOG_TAG, "## 6");
-        initMap();
-        Log.d(LOG_TAG, "## 7");
     }
 
 
@@ -258,7 +197,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         coord_txt.setText(String.format("Latitude: %s\nLongitude: %s", latitude, longitude));
 
         Car_pos = new LatLng(latitude, longitude);
-        Log.d(LOG_TAG, "## 8");
         initMap();
     }
 
@@ -294,6 +232,26 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     // ------------------------------------------------------
     // Display Google maps
     // ------------------------------------------------------
+    private void getCoordinates(){
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                    MainActivity.this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                    1);
+        }
+
+        gps = new GPSTracker(MainActivity.this); // Create class object
+
+        if(gps.canGetLocation()) { // Check if GPS enabled
+            latitude = gps.getLatitude();
+            longitude = gps.getLongitude();
+            //Toast.makeText(getApplicationContext(), "Your Location is - \nLat: " + latitude + "\nLong: " + longitude, Toast.LENGTH_LONG).show();
+        } else {
+            // Can't get location. // GPS or network is not enabled.
+            gps.showSettingsAlert(); // Ask user to enable GPS/network in settings.
+        }
+    }
+
     private void initMap(){
         Log.d(LOG_TAG,"initMap: initializing map");
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -338,17 +296,20 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
             else if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
                 //Device has disconnected
                 BTdeviceName = device.getName();
-                BTdeviceHardwareAddress = device.getAddress(); // MAC address TODO: in futuro si potrebbe fare che ti faccio eseguire il primo collegamento e mi tengo salvato poi il mac
+                //TODO: in futuro si potrebbe fare che ti faccio eseguire il primo collegamento e mi tengo salvato poi il mac
+                BTdeviceHardwareAddress = device.getAddress(); // MAC address
                 input_blt_name = mPreferences.getString("blt_name", "");
-                Log.d(LOG_TAG, "BTdeviceName: " + BTdeviceName + " - input_blt_name: " + input_blt_name);
 
                 if(BTdeviceName.equals(input_blt_name)) {    // Se il BT inserito dall'utente coincide allora è la macchina e posso salvare posizione
                     Toast.makeText(getApplicationContext(), "Bluetooth disconnected\nSaving Position", Toast.LENGTH_SHORT).show();
+                    getCoordinates();
                     PositionSaving();
+                    //TODO: non posso aggiornare la mappa al momento per via della callback di OnReadyMap eseguita dentro OnReceiver,
+                    // se la sposto nella OnStart viene aggiornata prima che prenda le nuove coordinate
+                    //Car_pos = new LatLng(latitude, longitude);
+                    //initMap();
 
-                    Log.d(LOG_TAG, "2");
                     unregisterReceiver(mReceiver);
-                    Log.d(LOG_TAG, "2");
                 }
                 Log.d(LOG_TAG, "BT disconnected: " + BTdeviceName + " - MAC: " + BTdeviceHardwareAddress);
             }
@@ -390,6 +351,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                         startActivityForResult(enableBtIntent, 0); // Abilita il bluetooth
                     }
                 }
+
                 break;
             case "No_Bluetooth":
                 // deve prendere sempre posizione, e controllare quanti passi o quanto tempo passa prima di salvare la posizione
@@ -415,7 +377,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     protected void onResume() {
         super.onResume();
         Log.d(LOG_TAG, "onResume");
-       // getParkDetails();
     }
 
     @Override
@@ -435,5 +396,4 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         super.onDestroy();
         Log.d(LOG_TAG, "onDestroy");
     }
-    //TODO: Bisogna usare i service per lavorare in background
 }
