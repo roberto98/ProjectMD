@@ -10,25 +10,24 @@
         android:id="@+id/automatic_switch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="88dp"
+        android:layout_marginTop="8dp"
         android:minHeight="48dp"
-        android:text="Activate Automatic Savings"
-        android:textSize="24sp"
+        android:text="Automatic Savings"
+        android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.492"
+        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/description" />
 
     <Switch
         android:id="@+id/bluetooth_switch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="36dp"
+        android:layout_marginTop="16dp"
         android:minHeight="48dp"
         android:text="Bluetooth"
-        android:textSize="24sp"
+        android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/automatic_switch" />
 
@@ -36,7 +35,7 @@
         android:id="@+id/bluetoothtext"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="16dp"
         android:ems="10"
         android:hint="Bluetooth's name"
         android:inputType="textPersonName"
@@ -51,7 +50,7 @@
         style="?android:attr/borderlessButtonStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="28dp"
         android:onClick="saveButton"
         android:text="Save"
         android:textColor="#000000"
@@ -66,14 +65,24 @@
         style="?android:attr/borderlessButtonStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:onClick="Clear"
         android:text="Clear all"
         android:textColor="#000000"
         android:textSize="14sp"
-        android:onClick="Clear"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/saveBtn"
-        app:layout_constraintVertical_bias="0.155" />
+        app:layout_constraintVertical_bias="0.091" />
+
+    <TextView
+        android:id="@+id/description"
+        android:layout_width="321dp"
+        android:layout_height="176dp"
+        android:layout_marginTop="40dp"
+        android:text="@string/automatic_saving_description"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

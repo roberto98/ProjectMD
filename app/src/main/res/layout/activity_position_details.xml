@@ -8,15 +8,15 @@
 
     <TextView
         android:id="@+id/coord_pos"
-        android:layout_width="356dp"
-        android:layout_height="94dp"
-        android:layout_marginTop="16dp"
+        android:layout_width="275dp"
+        android:layout_height="68dp"
+        android:layout_marginTop="28dp"
         android:drawableLeft="@android:drawable/ic_menu_mylocation"
-        android:gravity="center"
         android:text="Coordinates:"
-        android:textSize="20sp"
+        android:gravity="center"
+        android:textAlignment="viewStart"
+        android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.49"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -25,7 +25,7 @@
         style="?android:attr/borderlessButtonStyle"
         android:layout_width="190dp"
         android:layout_height="53dp"
-        android:layout_marginTop="28dp"
+        android:layout_marginTop="24dp"
         android:drawableLeft="@android:drawable/ic_menu_camera"
         android:onClick="TakePictureIntent"
         android:text="Click"
@@ -38,9 +38,9 @@
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="272dp"
-        android:layout_height="195dp"
-        android:layout_marginTop="32dp"
+        android:layout_width="282dp"
+        android:layout_height="264dp"
+        android:layout_marginTop="40dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
@@ -50,10 +50,10 @@
         android:id="@+id/park_time_pos"
         android:layout_width="316dp"
         android:layout_height="66dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="8dp"
         android:gravity="center"
         android:text="Park's time:"
-        android:textSize="20sp"
+        android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.494"
         app:layout_constraintStart_toStartOf="parent"
@@ -74,5 +74,5 @@
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView"
-        app:layout_constraintVertical_bias="0.292" />
+        app:layout_constraintVertical_bias="0.356" />
 </androidx.constraintlayout.widget.ConstraintLayout>

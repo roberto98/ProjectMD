@@ -40,8 +40,4 @@ dependencies {
 
     implementation 'org.greenrobot:eventbus:3.2.0'
 
-    // https://github.com/permissions-dispatcher/PermissionsDispatcher
-    implementation "com.github.permissions-dispatcher:permissionsdispatcher:4.9.1"
-    annotationProcessor "com.github.permissions-dispatcher:permissionsdispatcher-processor:4.9.1"
-
 }

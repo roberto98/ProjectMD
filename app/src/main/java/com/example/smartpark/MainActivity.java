@@ -3,15 +3,12 @@ package com.example.smartpark;
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -30,10 +27,6 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import permissions.dispatcher.NeedsPermission;
-import permissions.dispatcher.OnPermissionDenied;
-import permissions.dispatcher.RuntimePermissions;
-
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -43,25 +36,20 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback{
     private static final String LOG_TAG = "/TAG/"+MainActivity.class.getSimpleName();
-    private LocationManager locationManager;
     double latitude;
     double longitude;
 
     TextView coord_txt, park_time;
     String time, input_blt_name, saving_type;
     LatLng Car_pos;
-
-    // GPSTracker class
-    GPSTracker gps;
+    GPSTracker gps;     // GPSTracker class
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         getCoordinates();
-
         getParkDetails(); // Settings di coordinate gps e tempo e mappa già salvate
 
         Log.d(LOG_TAG, "OnCreate");
@@ -223,8 +211,52 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             File fileToBeDeleted = new File(path, photo_name); // image to delete
             boolean WasDeleted = fileToBeDeleted.delete();
 
+            SharedPreferences.Editor preferencesEditor = mPreferences.edit();
+            preferencesEditor.remove("photo_time"); // delete time associated with photo
+            preferencesEditor.apply();
+
         } catch (Exception e) {
             System.err.println(e.toString());
+        }
+    }
+
+    private void manageModality(){
+        String aux = mPreferences.getString("saving_type", "");
+        if(!TextUtils.isEmpty(aux)) {
+            saving_type = aux;
+        } else {
+            saving_type = "No_Auto";
+        }
+
+        Log.d(LOG_TAG, "modality type: "+saving_type);
+        switch (saving_type){
+            case "Bluetooth":
+                BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                if(bluetoothAdapter == null){
+                    Toast.makeText(getApplicationContext(), "Bluetooth not supported", Toast.LENGTH_LONG).show();
+                } else {
+                    IntentFilter filter = new IntentFilter();
+                    filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
+                    filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
+                    filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+                    this.registerReceiver(mReceiver, filter);
+
+                    if(!bluetoothAdapter.isEnabled()){
+                        Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                        startActivityForResult(enableBtIntent, 0); // Abilita il bluetooth
+                    }
+                }
+                break;
+
+            case "No_Bluetooth":
+                // deve prendere sempre posizione, e controllare quanti passi o quanto tempo passa prima di salvare la posizione
+                //Log.d(LOG_TAG, "Automatic Mode with NO bluetooth");
+                break;
+            case "No_Auto":
+                // la posizione non si deve riaggiornare
+                break;
+            default:
+                Toast.makeText(getApplicationContext(), "Something went wrong, contact the developer.\nCode #123", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -323,48 +355,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onStart() {
         super.onStart();
-
-        String aux = mPreferences.getString("saving_type", "");
-        if(!TextUtils.isEmpty(aux)) {
-            saving_type = aux;
-        } else {
-            saving_type = "No_Auto";
-        }
-
-        //TODO: checkare se blt o no, e quindi gestirli con dei listeners per salvare posizione
-        // Per il background: https://gist.github.com/AlonsoFloo/6651a55266079ff8392fd6f825669cdb
-        Log.d(LOG_TAG, "type: "+saving_type);
-        switch (saving_type){
-            case "Bluetooth":
-                BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-                if(bluetoothAdapter == null){
-                    Toast.makeText(getApplicationContext(), "Bluetooth not supported", Toast.LENGTH_LONG).show();
-                } else {
-                    IntentFilter filter = new IntentFilter();
-                    filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
-                    filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
-                    filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-                    this.registerReceiver(mReceiver, filter);
-
-                    if(!bluetoothAdapter.isEnabled()){
-                        Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                        startActivityForResult(enableBtIntent, 0); // Abilita il bluetooth
-                    }
-                }
-
-                break;
-            case "No_Bluetooth":
-                // deve prendere sempre posizione, e controllare quanti passi o quanto tempo passa prima di salvare la posizione
-                //Log.d(LOG_TAG, "Automatic Mode with NO bluetooth");
-                break;
-            case "No_Auto":
-                // la posizione non si deve riaggiornare
-                break;
-            default:
-                Toast.makeText(getApplicationContext(), "Something went wrong, contact the developer.\nCode #123", Toast.LENGTH_LONG).show();
-        }
+        manageModality();
         Log.d(LOG_TAG, "onStart");
-
     }
 
     @Override

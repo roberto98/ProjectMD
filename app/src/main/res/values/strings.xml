@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">SmartPark</string>
     <string name="app_description">This app is developed by Roberto Di Via and Edoardo Vernazza for a UNIGE project</string>
+    <string name="automatic_saving_description">
+        Here you can activate automatic savings for your parks.
+        You can choose:<br/><br/>
+        1- If you switch "Automatic savings" it will start saving your position automatically<br/>
+        2- If you switch "Bluetooth" and "Automatic savings" your position saved will be more accurate<br/></string>
 </resources>

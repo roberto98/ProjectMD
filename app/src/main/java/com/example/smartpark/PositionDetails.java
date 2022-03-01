@@ -69,6 +69,7 @@ public class PositionDetails extends AppCompatActivity {
         String sharedPrefFile = "com.example.smartparkapp";
         mPreferences = getSharedPreferences(sharedPrefFile, MODE_PRIVATE);
         textbox.setText(String.format(mPreferences.getString("text_box", "")));
+        time = mPreferences.getString("photo_time", "");
 
         park_time_pos.setText(park_time);
         coord_pos.setText(coordinates);
@@ -107,6 +108,10 @@ public class PositionDetails extends AppCompatActivity {
             File fileToBeDeleted = new File(path, photo_name); // image to delete
             boolean WasDeleted = fileToBeDeleted.delete();
 
+            SharedPreferences.Editor preferencesEditor = mPreferences.edit();
+            preferencesEditor.remove("photo_time"); // delete time associated with photo
+            preferencesEditor.apply();
+
         } catch (Exception e) {
             System.err.println(e.toString());
         }
@@ -130,6 +135,10 @@ public class PositionDetails extends AppCompatActivity {
 
                         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                         time = dateFormat.format(new Date());
+
+                        SharedPreferences.Editor preferencesEditor = mPreferences.edit();
+                        preferencesEditor.putString("photo_time", time);
+                        preferencesEditor.apply();
 
                         saveImageBitmap(imageBitmap);
                         imageView = (ImageView) findViewById(R.id.imageView);
