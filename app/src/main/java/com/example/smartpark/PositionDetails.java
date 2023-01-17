@@ -36,27 +36,26 @@ public class PositionDetails extends AppCompatActivity {
     private static final String LOG_TAG = "/TAG/"+PositionDetails.class.getSimpleName();
     private SharedPreferences mPreferences;
     ImageView imageView;
-    String time;
+    String time, coordinates, park_time;
     TextView park_time_pos, coord_pos;
     EditText textbox;
 
-    String coordinates, park_time;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_position_details);
         Log.d(LOG_TAG, "onCreate");
 
-        imageView = (ImageView) findViewById(R.id.imageView);
-        loadImageFromStorage();
-
         park_time_pos = findViewById(R.id.park_time_pos);
         coord_pos = findViewById(R.id.coord_pos);
         textbox = findViewById(R.id.textbox);
 
+        imageView = (ImageView) findViewById(R.id.imageView);
+        loadImageFromStorage(); // load the last picture saved otherwise load the default image
+
 
         // ------------------------------------------------------
-        // Settings coordinates and park time from intent + textbox from Shared Pref
+        // Setting coordinates and park time from intent
         // ------------------------------------------------------
         if (savedInstanceState == null) {
             Bundle extras = getIntent().getExtras();
@@ -66,18 +65,21 @@ public class PositionDetails extends AppCompatActivity {
             }
         }
 
-        String sharedPrefFile = "com.example.smartparkapp";
-        mPreferences = getSharedPreferences(sharedPrefFile, MODE_PRIVATE);
-        textbox.setText(String.format(mPreferences.getString("text_box", "")));
-        time = mPreferences.getString("photo_time", "");
-
         park_time_pos.setText(park_time);
         coord_pos.setText(coordinates);
 
+        // ------------------------------------------------------
+        // Setting the textbox from Shared Pref
+        // ------------------------------------------------------
+        String sharedPrefFile = "com.example.smartparkapp";
+        mPreferences = getSharedPreferences(sharedPrefFile, MODE_PRIVATE);
+        textbox.setText(mPreferences.getString("text_box", ""));
+        time = mPreferences.getString("photo_time", "");
 
 
         // ------------------------------------------------------
-        // Click della foto
+        // CLICK  on the photos ->
+        // short click = display date || long click = delete photo
         // ------------------------------------------------------
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -87,40 +89,67 @@ public class PositionDetails extends AppCompatActivity {
             }
         });
 
-        // hold down to delete the image
+        // Hold down to delete the image
         imageView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 Log.d(LOG_TAG, "Image deleted");
-                imageView.setImageDrawable(null);
+                //imageView.setImageResource(R.drawable.img_missing);
                 DeleteImage("lastPhoto.jpg");
                 return true;
                 //return false; // It trigger also Short Click
             }
-
         });
-    }
 
-    private void DeleteImage(String photo_name) {
-        try {
-            Context context = getApplicationContext();
-            File path = new File(context.getFilesDir().getAbsolutePath());
-            File fileToBeDeleted = new File(path, photo_name); // image to delete
-            boolean WasDeleted = fileToBeDeleted.delete();
+    } // Close OnCreate
 
-            SharedPreferences.Editor preferencesEditor = mPreferences.edit();
-            preferencesEditor.remove("photo_time"); // delete time associated with photo
-            preferencesEditor.apply();
+    // ------------------------------------------------------
+    // LOAD the photo taken
+    // ------------------------------------------------------
+    private void loadImageFromStorage() {
+        Context context = getApplicationContext();
+        File path = new File(context.getFilesDir().getAbsolutePath());
+        File f = new File(path, "lastPhoto.jpg");
 
-        } catch (Exception e) {
-            System.err.println(e.toString());
+        if (f.exists()) {
+            try {
+                Bitmap b = BitmapFactory.decodeStream(new FileInputStream(f));
+                ImageView imageView = findViewById(R.id.imageView);
+                imageView.setImageBitmap(b);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        } else {
+            imageView = (ImageView)findViewById(R.id.imageView);
+            imageView.setImageResource(R.drawable.img_missing);
         }
     }
 
     // ------------------------------------------------------
-    // Salvataggio della foto
+    // DELETE the photo taken
     // ------------------------------------------------------
+    private void DeleteImage(String photo_name) {
+        Context context = getApplicationContext();
+        File path = new File(context.getFilesDir().getAbsolutePath());
+        File fileToBeDeleted = new File(path, photo_name); // image to delete
 
+        if (fileToBeDeleted.exists()) {
+            boolean is_deleted = fileToBeDeleted.delete(); // delete image from the app path
+            if(is_deleted) {
+                imageView = (ImageView)findViewById(R.id.imageView);
+                imageView.setImageResource(R.drawable.img_missing);
+
+                SharedPreferences.Editor preferencesEditor = mPreferences.edit();
+                preferencesEditor.remove("photo_time"); // delete time associated with photo
+                preferencesEditor.apply();
+            }
+        }
+    }
+
+
+    // ------------------------------------------------------
+    // SAVE the photo taken
+    // ------------------------------------------------------
     ActivityResultLauncher<Intent> someActivityResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
@@ -133,7 +162,7 @@ public class PositionDetails extends AppCompatActivity {
                             imageBitmap = (Bitmap) data.getExtras().get("data");
                         }
 
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); // To display in the Toast
                         time = dateFormat.format(new Date());
 
                         SharedPreferences.Editor preferencesEditor = mPreferences.edit();
@@ -144,7 +173,7 @@ public class PositionDetails extends AppCompatActivity {
                         imageView = (ImageView) findViewById(R.id.imageView);
                         imageView.setImageBitmap(imageBitmap);
 
-                        Toast.makeText(getBaseContext(), "Photo saved\nYou can delete it holding it", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getBaseContext(), "Photo saved\nTo delete, hold it", Toast.LENGTH_LONG).show();
                         //imageView.setRotation(90);
                     }
 
@@ -189,22 +218,7 @@ public class PositionDetails extends AppCompatActivity {
         // return directory.getAbsolutePath();
     }
 
-    private void loadImageFromStorage()
-    {
-        Context context = getApplicationContext();
-        File path = new File(context.getFilesDir().getAbsolutePath());
-        try {
-            File f=new File(path, "lastPhoto.jpg");
-            Bitmap b = BitmapFactory.decodeStream(new FileInputStream(f));
-            imageView=(ImageView)findViewById(R.id.imageView);
-            imageView.setImageBitmap(b);
-        }
-        catch (FileNotFoundException e)
-        {
-            e.printStackTrace();
-        }
 
-    }
 
 
     @Override
@@ -226,7 +240,7 @@ public class PositionDetails extends AppCompatActivity {
     }
 
     @Override
-    protected void onPause() { // Salva in automatico uscendo dalla pagina
+    protected void onPause() { // Quitting the page, it allows to save anyway the information
         super.onPause();
         textbox = findViewById(R.id.textbox);
         SharedPreferences.Editor preferencesEditor = mPreferences.edit();

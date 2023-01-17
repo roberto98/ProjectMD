@@ -2,17 +2,14 @@ package com.example.smartpark;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Switch;
-import android.widget.TextView;
 import android.widget.Toast;
-
-import com.google.android.gms.maps.model.LatLng;
 
 public class AutomaticSaving extends AppCompatActivity {
     private static final String LOG_TAG = "/TAG/"+AutomaticSaving.class.getSimpleName();
@@ -20,22 +17,40 @@ public class AutomaticSaving extends AppCompatActivity {
     EditText bluetooth_text;
     Switch auto_switch, blt_switch;
 
-    String blt_name;
-    String saving_type;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_automatic_saving);
 
-        // ------------------------------------------------------
-        // GET delle informazioni
-        // ------------------------------------------------------
-
         auto_switch = findViewById(R.id.automatic_switch);
+        auto_switch.setClickable(false); // TO DO: Setted to false because this functionality is not implemented yet (17/01/2023)
+
         blt_switch = findViewById(R.id.bluetooth_switch);
         bluetooth_text = findViewById(R.id.bluetoothtext);
 
+        // ------------------------------------------------------
+        // Synchronized switch buttons
+        // ------------------------------------------------------
+        blt_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                auto_switch.setChecked(isChecked);
+            }
+        });
+
+        auto_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (!isChecked) {
+                    blt_switch.setChecked(false);
+                }
+            }
+        });
+
+
+        // ------------------------------------------------------
+        // GET the last saved information
+        // ------------------------------------------------------
         String sharedPrefFile = "com.example.smartparkapp";
         mPreferences = getSharedPreferences(sharedPrefFile, MODE_PRIVATE);
 
@@ -82,9 +97,8 @@ public class AutomaticSaving extends AppCompatActivity {
     }
 
     // ------------------------------------------------------
-    // Salvataggio delle informazioni
+    // SAVE the information
     // ------------------------------------------------------
-
     public void saveButton(View v){
         saveFunction();
         finish(); // Finish the current activity
@@ -96,7 +110,7 @@ public class AutomaticSaving extends AppCompatActivity {
         preferencesEditor.putBoolean("blt_switch", blt_switch.isChecked());
         preferencesEditor.putString("blt_name", bluetooth_text.getText().toString());
 
-        if(auto_switch.isChecked()){ // Verifico quale tipo di salvataggio automatico è attivo e lo salvo
+        if(auto_switch.isChecked()){ // Check which type of saving is enabled and store it in the preferences
             if(blt_switch.isChecked()){
                 preferencesEditor.putString("saving_type", "Bluetooth");
             } else {
@@ -109,6 +123,9 @@ public class AutomaticSaving extends AppCompatActivity {
         Toast.makeText(getApplicationContext(), "Settings Saved",  Toast.LENGTH_LONG).show();
     }
 
+    // ------------------------------------------------------
+    // CLEAR all the saved information
+    // ------------------------------------------------------
     public void Clear(View v){
         String sharedPrefFile = "com.example.smartparkapp";
         SharedPreferences.Editor preferencesEditor = getSharedPreferences(sharedPrefFile, MODE_PRIVATE).edit();

@@ -6,19 +6,22 @@
     android:layout_height="match_parent"
     tools:context=".PositionDetails">
 
+
     <TextView
         android:id="@+id/coord_pos"
-        android:layout_width="275dp"
-        android:layout_height="68dp"
-        android:layout_marginTop="28dp"
+        android:layout_width="310dp"
+        android:layout_height="62dp"
+        android:layout_marginTop="12dp"
         android:drawableLeft="@android:drawable/ic_menu_mylocation"
-        android:text="Coordinates:"
         android:gravity="center"
+        android:text="Coordinates:"
         android:textAlignment="viewStart"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.808"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
 
     <Button
         android:id="@+id/click"
@@ -38,11 +41,10 @@
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="282dp"
-        android:layout_height="264dp"
-        android:layout_marginTop="40dp"
+        android:layout_width="235dp"
+        android:layout_height="204dp"
+        android:layout_marginTop="16dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/click" />
 
@@ -74,5 +76,5 @@
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView"
-        app:layout_constraintVertical_bias="0.356" />
+        app:layout_constraintVertical_bias="0.185" />
 </androidx.constraintlayout.widget.ConstraintLayout>
