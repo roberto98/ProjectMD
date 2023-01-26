@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     // ------------------------------------------------------
     public void ManualSaving(View v) {
         getCoordinates(); // Get current GPS coordinates
-        PositionSaving(); // Refresh information displayed
+        PositionSaving(); // Save the coordinates and update information displayed
 
         Car_pos = new LatLng(latitude, longitude);
         initMap(); // Refresh the map
@@ -141,10 +141,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         coord_txt = findViewById(R.id.coord_txt);
         coord_txt.setText(String.format("Latitude: %s\nLongitude: %s", latitude, longitude));
-        savePark(time, latitude, longitude); // Update the last position saved
-    }
 
-    private void savePark(String time, double latitude, double longitude){
+        // Update the last position saved
         SharedPreferences.Editor preferencesEditor = mPreferences.edit();
         preferencesEditor.putString("park_time", time);
         preferencesEditor.putString("latitude", String.valueOf(latitude));

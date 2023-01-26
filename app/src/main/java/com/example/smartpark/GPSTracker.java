@@ -13,7 +13,7 @@ import android.os.IBinder;
 import android.provider.Settings;
 import android.util.Log;
 import androidx.appcompat.app.AlertDialog;
-
+// https://stackoverflow.com/questions/43261481/why-gps-tracker-extends-service
 // https://stackoverflow.com/questions/1513485/how-do-i-get-the-current-gps-location-programmatically-in-android
 public class GPSTracker extends Service implements LocationListener {
     private static final String LOG_TAG = "/TAG/" + GPSTracker.class.getSimpleName();

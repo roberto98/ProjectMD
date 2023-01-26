@@ -101,7 +101,7 @@ public class AutomaticSaving extends AppCompatActivity {
     // ------------------------------------------------------
     public void saveButton(View v){
         saveFunction();
-        finish(); // Finish the current activity
+        finish(); // Finish the current activity, so it the main go into OnStart activity and save the current save modality.
     }
 
     private void saveFunction(){
